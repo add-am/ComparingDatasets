@@ -49,9 +49,11 @@ file_names <- list.files("data/", full.names = TRUE)
 gt_data <- read_xlsx(file_names[4], sheet = 2)
 
 #load the collection of datasets together
-collection <- map(file_names[1:3], ~read_xlsx(.x, 2))
+collection_data <- map(file_names[1:3], ~read_xlsx(.x, 2))
 
 ```
+
+# Columns
 
 Next we will need to compile a list of all column names that exist across both the gt and collection datasets. The idea here is to determine the amount of "true" variation in column names. To make things easier to check, the column names should be ordered alphabetically.
 
@@ -61,7 +63,7 @@ Next we will need to compile a list of all column names that exist across both t
 all_col_names <- sort(
     unlist(
         map(
-            c(list(gt_data), collection), 
+            c(list(gt_data), collection_data), 
             colnames
         )
     )
@@ -77,18 +79,24 @@ all_col_names
 
 Looking at this list of names we can already spot some double ups, for instance "CHL (ug/L)" and "Chl_ug/L" refer to the same column and should have their name standardised. However, this is an area to tread cautiously - if you updated "XYZ (ug/L)" to match "XYZ_mg/L" you would be making a fatal error.
 
-Generally it is a good idea to start with grammar and syntax, things like capitals, brackets, underscores, etc. Following this some obvious changes such as aligning "secchi depth m" and "secchi m" can occur.
-
-Once you have standardised as much as reasonable, return only the unique names.
+Generally it is a good idea to start with grammar and syntax, things like capitals, brackets, underscores, etc. Following this some obvious changes such as aligning "secchi depth m" and "secchi m" can occur. Finally, after some detailed exploration of the datasets we can indentify things such as "pn um" = "pn shim um", "tss mg/l" = "ss mg/l" and "depth avg to" = "acoustic depth".
 
 ```{r}
+
+#create a list of replacements
+replacements <- c(
+    "collection start date" = "sample date",
+    "secchi depth m" = "secchi m",
+    "pn shim um" = "pn um",
+    "^ss mg/l" = "tss mg/l",
+    "depth avg to" = "acoustic depth"
+)
 
 all_col_names <- all_col_names |> 
     str_to_lower() |> 
     str_remove_all("\\(|\\)") |> 
     str_replace_all("_", " ") |> 
-    str_replace_all("collection start date", "sample date") |> 
-    str_replace_all("secchi depth m", "secchi m") |> 
+    str_replace_all(replacements) |> 
     unique()
 
 #generalise this method into a function for use later
@@ -99,13 +107,12 @@ col_name_cleaner <- function(input_string) {
         str_to_lower() |> 
         str_remove_all("\\(|\\)") |> 
         str_replace_all("_", " ") |> 
-        str_replace_all("collection start date", "sample date") |> 
-        str_replace_all("secchi depth m", "secchi m")
+        str_replace_all(replacements)
 }
 
 ```
 
-This leaves us with a list of **all** possible column names across **all** of our datasets. Ideally we would then find that every single name in this list exists in the groundtruth spreadsheet. So lets check that out.
+This leaves us with a list of **all** possible unique column names across **all** of our datasets. Ideally we would then find that every single name in this list exists in the groundtruth spreadsheet. So lets check that out.
 
 ```{r}
 
@@ -117,114 +124,88 @@ gt_data <- gt_data |>
     )
 
 #compare gt data column names to the list of all names
-exists <- all_col_names %in% colnames(gt_data)
+all(all_col_names %in% colnames(gt_data))
 
 ```
 
-Unfortunately what we actually find is that some names are not in the ground truth dataset, specifically the ones not present are:
-
-```{r}
-
-all_col_names[!exists]
-
-```
+Sucess!
 
 Conversely, the colnames that don't exist in the collection are:
 
 ```{r}
 
-collection <- map(collection, ~rename_with(.x, ~col_name_cleaner(.)))
+collection_clean_data <- map(collection_data, ~rename_with(.x, ~col_name_cleaner(.)))
 
-exists_2 <- all_col_names %in% colnames(collection[[1]])
+exists_2 <- all_col_names %in% colnames(collection_clean_data[[1]])
 
 all_col_names[!exists_2]
 
 ```
 
+On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles we have arrive at this point:
 
-
-Compile a "destination list" for all column names to be transformed into, experimenting to arrive at the lowest number of unique columns (whilst still retaining all required distinctions).
-
-:::{.note}
-This is a spot that will need to be customised for each new spreadsheet comparison as you explore the unique names, then the function below will need to be updated.
-:::
+[]() insert image
 
 ```{r}
 
-#duplicates
-destination_names <- all_col_names
-
-#make lower case, get unique, and sort
-destination_names <- destination_names |> 
-    str_to_lower() |> 
-    unique() |> 
-    sort()
-
-#remove brackets, convert underscores to spaces, rename two columns, get unique
-destination_names <- destination_names |> 
-    str_remove_all("\\(|\\)") |> 
-    str_replace_all("_", " ") |> 
-    str_replace_all("collection start date", "sample date") |> 
-    str_replace_all("secchi depth m", "secchi m") |> 
-    unique()
+gt_clean_data <- gt_data |> 
+    select(!all_col_names[!exists_2])
 
 ```
 
-Apply this transformation to each dataset via a generalised function. (BTW, it is easiest to treat the renaming process like you are dealing with a string rather than a df).
+# Rows
 
-```{r}
+Now that columns are aligned, we can look at rows. Referencing the coloured rectangles again, our data looks something like this:
 
-col_name_cleaner <- function(input_string) {
+[]() insert image
 
-    input_string |> 
-        as.character() |> 
-        str_to_lower() |> 
-        str_remove_all("\\(|\\)") |> 
-        str_replace_all("_", " ") |> 
-        str_replace_all("collection start date", "sample date") |> 
-        str_replace_all("secchi depth m", "secchi m")
-}
+In the case where we have more rows in our ground-truth dataset than the collections - this might be okay, the ground-truth dataset has more sites and a longer timeframe so we would expect this to answer that. However, in the case when rows exist in the collection that don't in the ground-truth... that is a problem. Lets take a look.
 
-clean_data <- map(data, ~rename_with(.x, ~col_name_cleaner(.)))
-
-```
-
-Filter data by "short name" to only keep sites of intest (this vector can be updated as needed).
+First we will filter data by "short name" to only keep sites of intest (this vector can be updated as needed).
 
 ```{r}
 
 short_names_to_keep <- c(
     "BUR1", "BUR10", "BUR13", "BUR2", "BUR4", "BUR7", "BUR8", #(burdekin/dry tropics sites)
     "C1", "C11", "C4", "C5", "C6", "C8", #(Wet Tropics)
-    "RM1", "RM10", "RM11", "RM12", "RM2", "RM3", "RM4", "RM5", "RM6", "RM7", "RM8", "RM9", #Wet Tropics)
-    "TUL10", "TUL11", "TUL2", "TUL3", "TUL4", "TUL5", "TUL6", "TUL7", "TUL8", "TUL9",
+    "RM1", "RM10", "RM11", "RM12", "RM2", "RM3", "RM4", "RM5", "RM6", "RM7", "RM8", "RM9", #(Wet Tropics)
+    "TUL10", "TUL11", "TUL2", "TUL3", "TUL4", "TUL5", "TUL6", "TUL7", "TUL8", "TUL9", #(Wet Tropics)
     "WHI1", "WHI4", "WHI5", "WHI6", "WHI7" #(Whitsundays)
 )
 
-clean_filtered_data <- map(clean_data, ~filter(.x, `short name` %in% short_names_to_keep))
+#apply to ground_truth
+gt_clean_filtered_data <- gt_clean_data |> 
+    filter(`short name` %in% short_names_to_keep)
 
+#apply to collection
+collection_clean_filtered_data <- map(collection_clean_data, ~filter(.x, `short name` %in% short_names_to_keep))
 
 ```
 
-compare timeframes of each dataset
+Then we need to restrict our timeframes, looking at the min date from the collection is a reasonable cutoff point, but to ensure we don't make any mistakes we will move that to the start of the year rather than mid year (i.e. instead of 2020-07-09 we will use 2020-01-01).
 
 ```{r}
 
-time_frames <- map(clean_filtered_data, ~paste0(min(.x$`sample date`)," to ", max(.x$`sample date`)))
+gt_clean_filtered_data <- gt_clean_filtered_data |> 
+    filter(`sample date` >= "2020-01-01")
+
+collection_clean_filtered_data <- map(collection_clean_filtered_data, ~filter(.x, `sample date` >= "2020-01-01"))
 
 ```
-
-limit data to no later than the oldest sample from the "unknown" dataframe (see below for definition of "unknown").
 
 ```{r}
 
-min_date <- min(clean_filtered_data[[1]]$`sample date`)
-
-clean_filtered_data <- map(clean_filtered_data, ~filter(.x, `sample date` >= min_date))
+length(unlist(map(collection_clean_filtered_data, ~unique(.x$`sample date`))))
 
 ```
 
-Append a tracking column defining if the dataframe is "to be checked" or "doing the checking":
+```{r}
+
+length(unique(gt_clean_filtered_data$`sample date`))
+
+```
+
+With both datasets capped to the same range, we can then append a tracking column to our two sets of data
 
  - GT = "Ground Truth" (doing the checking)
  - U = "Unknown" (being checked) 
@@ -232,46 +213,56 @@ Append a tracking column defining if the dataframe is "to be checked" or "doing 
  ```{r}
 
 #first make all df be unknown, then update just the one df to GT
-clean_filtered_data <- map(clean_filtered_data, ~mutate(.x, type = "U", .before = 1))
-clean_filtered_data[[4]] <- mutate(clean_filtered_data[[4]], type = "GT")
+collection_clean_filtered_data <- map(collection_clean_filtered_data, ~mutate(.x, type = "U", .before = 1))
+gt_clean_filtered_data <- mutate(gt_clean_filtered_data, type = "GT", .before = 1)
 
  ```
 
-extract all of the datasets out of the list into one dataframe, then divide by the tracking column
+Following this, all data can be combined into one large dataset.
 
 ```{r}
 
-all_data <- do.call(bind_rows, clean_filtered_data)
-
-unknown_data <- all_data |> filter(type == "U")
-
-gt_data <- all_data |> filter(type == "GT")
-
+all_data <- do.call(bind_rows, c(list(gt_clean_filtered_data), collection_clean_filtered_data))
 
 ```
 
-Get a broad overview
+And then we can group data by everything except the appended type column and count the number of rows in each group. The logic here is that each row in the collection, should have an equivalent row in the ground-truth dataset. Therefore, ever row with the type "U" should have a group count of 2. Conversely, most rows with the type "GT" should have a group count of 2, but it should be noted that the GT dataset has some more recent data, and some of the collection data doesn't have all samples for a site over the period. 
+
+If a row with "U" has a group count of 1 - this is a big problem. If a row with "GT" has a group count of 1 - this is a small to moderate problem.
 
 ```{r}
 
-all.equal(unknown_data, gt_data)
+all_data <- all_data |> 
+    group_by(across(!type)) |> 
+    mutate(count = n()) |> 
+    ungroup()
 
- ```
+```
 
- return rows that only exist in one table
+```{r}
 
- ```{r}
+problem_rows <- all_data |> 
+    filter(type == "U" & count < 2)
 
-diff_1 <- anti_join(unknown_data, gt_data)
+```
 
-diff_2 <- anti_join(gt_data, unknown_data)
+Our first assessment of these problems rows is that errors seem related to the time being missing in the date col (registering as 00:00:00), but there are still a few rows that do have times that have popped up. The errors for each of these have been identified as follows:
 
- ```
+ - BUR4 2023-03-07 12:00:00 it seems like the GT table has no lat val
+ - RM10 2023-01-26 13:00:00 the lat and long are .01 off
+ - RM7 2023-01-26 12:10:00 long is .9 off - a big difference, only once though. a typo?
+ - RM10 2023-01-12 12:44:00 the long is .01 off
+ - RM10 2022-07-18 10:22:00 the long is .03 off
+ - TUL 2023-01-11 10:55:00 the long is .12 off
+ - BUR4 2023-01-04 11:05:00 the lat and long are .01 off
 
- ```{r}
+Overall, it looks like every issue of a row from a spreadsheet not found in the gt table is related to metadata.
 
-install.packages("compare")
+Comparing in the other direction there are a few hundred rows with a group count of 1, so a manual check is probably not going to cut it.
 
-compare::compare(unknown_data, gt_data)
+```{r}
 
- ```
+problem_rows_2 <- all_data |> 
+    filter(type == "GT" & count < 2)
+
+```
