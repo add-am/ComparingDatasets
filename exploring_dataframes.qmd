@@ -257,7 +257,7 @@ This is basically saying the GT table has twice as many samples within the same 
 
 ```{r}
 
-ggplot(collection_clean_filtered_data, aes(x = `sample date`, y = `pp um`)) +
+ggplot(do.call(bind_rows, collection_clean_filtered_data), aes(x = `sample date`, y = `pp um`)) +
     geom_line()
 
 ```

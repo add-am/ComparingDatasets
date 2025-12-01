@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Untitled</title>
+<title>Comparing Datasets</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="exploring_dataframes_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="exploring_dataframes_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="exploring_dataframes_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="exploring_dataframes_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="exploring_dataframes_files/libs/bootstrap/bootstrap-6e70023e03052827610af39d5bd37d6e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Untitled</h1>
+<h1 class="title">Comparing Datasets</h1>
 </div>
 
 
@@ -108,19 +108,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Imagine the master spreadsheet is represented by a grey rectangle</li>
 <li>Likewise, each of the other spreadsheets are represented by yellow, blue, and green rectangles</li>
 </ol>
-<p><img src="images/image_1.png" class="img-fluid"></p>
+<p><img src="images/image_1.png" style="height:2in"></p>
 <ol start="3" type="1">
 <li>If all rows from the collection of spreadsheets (yellow, blue, green) exist in the master spreadsheet (grey), this can be visualised something like this:</li>
 </ol>
-<p><img src="images/image_2.png" class="img-fluid"></p>
+<p><img src="images/image_2.png" style="height:2in"></p>
 <ol start="4" type="1">
 <li>However if the collection of spreadsheets have columns that don’t exist in the master, it would look like this:</li>
 </ol>
-<p><img src="images/image_3.png" class="img-fluid"></p>
+<p><img src="images/image_3.png" style="height:2in"></p>
 <ol start="5" type="1">
 <li>Likewise if the collection had rows that didn’t exist in the master it would look like this:</li>
 </ol>
-<p><img src="images/image_4.png" class="img-fluid"></p>
+<p><img src="images/image_4.png" style="height:2in"></p>
 <p>The task becomes determining where the collection of spreadsheets sit within the master spreadsheet, and identifying if the rows/columns actually do not exist in the master, or is there some small discrepency such as a typo that is causing the issue.</p>
 </section>
 <section id="solution" class="level2">
@@ -145,56 +145,51 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Set Up</h1>
 <p>Only a very simple set up is required, a few basic packages and then reading in all the data. Note that the collection of spreadsheets should be stored in a list, and the master should be kept separate.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'dplyr'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:stats':
-
-    filter, lag</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following objects are masked from 'package:base':
-
-    intersect, setdiff, setequal, union</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(readr)</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'readxl' was built under R version 4.5.2</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#get a list of datasets</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>file_names <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="st">"data/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#load the master (ground-truth) data by itself</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(file_names[<span class="dv">4</span>], <span class="at">sheet =</span> <span class="dv">2</span>)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#load the collection of datasets together</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>collection_data <span class="ot">&lt;-</span> <span class="fu">map</span>(file_names[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>], <span class="sc">~</span><span class="fu">read_xlsx</span>(.x, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#get a list of datasets</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>file_names <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="st">"data/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#load the master (ground-truth) data by itself</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(file_names[<span class="dv">4</span>], <span class="at">sheet =</span> <span class="dv">2</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#load the collection of datasets together</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>collection_data <span class="ot">&lt;-</span> <span class="fu">map</span>(file_names[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>], <span class="sc">~</span><span class="fu">read_xlsx</span>(.x, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
 <section id="columns" class="level1">
 <h1>Columns</h1>
 <p>The first step is to address differences in column names, to do this we will need to compile a list of all column names that exist across both the gt and collection datasets. The idea here is to determine the amount of “true” variation in column names. To make things easier to check, the column names should be ordered alphabetically.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract all column names</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> <span class="fu">sort</span>(</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlist</span>(</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">map</span>(</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="fu">list</span>(gt_data), collection_data), </span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            colnames</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract all column names</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> <span class="fu">sort</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlist</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">map</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="fu">list</span>(gt_data), collection_data), </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>            colnames</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>all_col_names</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>all_col_names</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "ACOUSTIC_DEPTH"         "ACOUSTIC_DEPTH"         "ACOUSTIC_DEPTH"        
  [4] "ATTRIBUTION"            "CHL (ug/L)"             "Chl_ug/L"              
@@ -225,44 +220,50 @@ Attaching package: 'dplyr'</code></pre>
 <p>Looking at this list of names we can already spot some double ups, for instance “CHL (ug/L)” and “Chl_ug/L” refer to the same column and should have their name standardised. However, this is an area to tread cautiously - if you updated “XYZ (ug/L)” to match “XYZ_mg/L” you would be making a fatal error.</p>
 <p>Generally it is a good idea to start with grammar and syntax, things like capitals, brackets, underscores, etc. Following this some obvious changes such as aligning “secchi depth m” and “secchi m” can occur. Finally, after some detailed exploration of the datasets we can indentify things such as “pn um” = “pn shim um”, “tss mg/l” = “ss mg/l” and “depth avg to” = “acoustic depth”.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a list of replacements</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>replacements <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"collection start date"</span> <span class="ot">=</span> <span class="st">"sample date"</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"secchi depth m"</span> <span class="ot">=</span> <span class="st">"secchi m"</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pn shim um"</span> <span class="ot">=</span> <span class="st">"pn um"</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"^ss mg/l"</span> <span class="ot">=</span> <span class="st">"tss mg/l"</span>,</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"depth avg to"</span> <span class="ot">=</span> <span class="st">"acoustic depth"</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> all_col_names <span class="sc">|&gt;</span> </span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(replacements) <span class="sc">|&gt;</span> </span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>()</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">#generalise this method into a function for use later</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>col_name_cleaner <span class="ot">&lt;-</span> <span class="cf">function</span>(input_string) {</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    input_string <span class="sc">|&gt;</span> </span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.character</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(replacements)</span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a list of replacements</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>replacements <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"collection start date"</span> <span class="ot">=</span> <span class="st">"sample date"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"secchi depth m"</span> <span class="ot">=</span> <span class="st">"secchi m"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pn shim um"</span> <span class="ot">=</span> <span class="st">"pn um"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"^ss mg/l"</span> <span class="ot">=</span> <span class="st">"tss mg/l"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"depth avg to"</span> <span class="ot">=</span> <span class="st">"acoustic depth"</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> all_col_names <span class="sc">|&gt;</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(replacements) <span class="sc">|&gt;</span> </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>()</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">#generalise this method into a function for use later</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>col_name_cleaner <span class="ot">&lt;-</span> <span class="cf">function</span>(input_string) {</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    input_string <span class="sc">|&gt;</span> </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.character</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(replacements)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>This leaves us with a list of <strong>all</strong> possible unique column names across <strong>all</strong> of our datasets. Ideally we would then find that every single name in this list exists in the groundtruth spreadsheet. So lets check that out.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#run function on gt data</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename_with</span>(</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">.cols =</span> <span class="fu">everything</span>(),</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#compare gt data column names to the list of all names</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(gt_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#run function on gt data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename_with</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">.cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#compare gt data column names to the list of all names</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(gt_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
@@ -270,11 +271,14 @@ Attaching package: 'dplyr'</code></pre>
 <p>Sucess!</p>
 <p>Conversely, the colnames that don’t exist in the collection are:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>collection_clean_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_data, <span class="sc">~</span><span class="fu">rename_with</span>(.x, <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>exists_2 <span class="ot">&lt;-</span> all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(collection_clean_data[[<span class="dv">1</span>]])</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>all_col_names[<span class="sc">!</span>exists_2]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>collection_clean_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_data, <span class="sc">~</span><span class="fu">rename_with</span>(.x, <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>exists_2 <span class="ot">&lt;-</span> all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(collection_clean_data[[<span class="dv">1</span>]])</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>all_col_names[<span class="sc">!</span>exists_2]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "attribution"          "dip um"               "nh4 um"              
 [4] "nh4 insitu um"        "tdn per um"           "tdn shim um"         
@@ -282,10 +286,13 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 </div>
 <p>On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles again, not how the columns of the collection now exists fully within the master, and that the columns of the master have been cut down to match:</p>
-<p><img src="images/image_5.png" class="img-fluid"></p>
+<p><img src="images/image_5.png" style="height:2in"></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>gt_clean_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">!</span>all_col_names[<span class="sc">!</span>exists_2])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>gt_clean_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">!</span>all_col_names[<span class="sc">!</span>exists_2])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
 <section id="rows" class="level1">
@@ -293,37 +300,46 @@ Attaching package: 'dplyr'</code></pre>
 <p>Now that we have established that all differences in columns were false positives we can move on to inspecting rows.</p>
 <p>First we will filter data by “short name” to only keep sites of interest (this vector can be updated as needed). This removes sites that are outside the N3 region and/or are not regularly monitored.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>short_names_to_keep <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"BUR1"</span>, <span class="st">"BUR10"</span>, <span class="st">"BUR13"</span>, <span class="st">"BUR2"</span>, <span class="st">"BUR4"</span>, <span class="st">"BUR7"</span>, <span class="st">"BUR8"</span>, <span class="co">#(burdekin/dry tropics sites)</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"C1"</span>, <span class="st">"C11"</span>, <span class="st">"C4"</span>, <span class="st">"C5"</span>, <span class="st">"C6"</span>, <span class="st">"C8"</span>, <span class="co">#(Wet Tropics)</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RM1"</span>, <span class="st">"RM10"</span>, <span class="st">"RM11"</span>, <span class="st">"RM12"</span>, <span class="st">"RM2"</span>, <span class="st">"RM3"</span>, <span class="st">"RM4"</span>, <span class="st">"RM5"</span>, <span class="st">"RM6"</span>, <span class="st">"RM7"</span>, <span class="st">"RM8"</span>, <span class="st">"RM9"</span>, <span class="co">#(Wet Tropics)</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TUL10"</span>, <span class="st">"TUL11"</span>, <span class="st">"TUL2"</span>, <span class="st">"TUL3"</span>, <span class="st">"TUL4"</span>, <span class="st">"TUL5"</span>, <span class="st">"TUL6"</span>, <span class="st">"TUL7"</span>, <span class="st">"TUL8"</span>, <span class="st">"TUL9"</span>, <span class="co">#(Wet Tropics)</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"WHI1"</span>, <span class="st">"WHI4"</span>, <span class="st">"WHI5"</span>, <span class="st">"WHI6"</span>, <span class="st">"WHI7"</span> <span class="co">#(Whitsundays)</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to ground_truth</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_data <span class="sc">|&gt;</span> </span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep)</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to collection</span></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>short_names_to_keep <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"BUR1"</span>, <span class="st">"BUR10"</span>, <span class="st">"BUR13"</span>, <span class="st">"BUR2"</span>, <span class="st">"BUR4"</span>, <span class="st">"BUR7"</span>, <span class="st">"BUR8"</span>, <span class="co">#(burdekin/dry tropics sites)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"C1"</span>, <span class="st">"C11"</span>, <span class="st">"C4"</span>, <span class="st">"C5"</span>, <span class="st">"C6"</span>, <span class="st">"C8"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RM1"</span>, <span class="st">"RM10"</span>, <span class="st">"RM11"</span>, <span class="st">"RM12"</span>, <span class="st">"RM2"</span>, <span class="st">"RM3"</span>, <span class="st">"RM4"</span>, <span class="st">"RM5"</span>, <span class="st">"RM6"</span>, <span class="st">"RM7"</span>, <span class="st">"RM8"</span>, <span class="st">"RM9"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TUL10"</span>, <span class="st">"TUL11"</span>, <span class="st">"TUL2"</span>, <span class="st">"TUL3"</span>, <span class="st">"TUL4"</span>, <span class="st">"TUL5"</span>, <span class="st">"TUL6"</span>, <span class="st">"TUL7"</span>, <span class="st">"TUL8"</span>, <span class="st">"TUL9"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"WHI1"</span>, <span class="st">"WHI4"</span>, <span class="st">"WHI5"</span>, <span class="st">"WHI6"</span>, <span class="st">"WHI7"</span> <span class="co">#(Whitsundays)</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to ground_truth</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_data <span class="sc">|&gt;</span> </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to collection</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>Then we need to restrict our timeframes, looking at the min date from the collection is a reasonable cutoff point, but to ensure we don’t make any mistakes if the collection has been accidently cut off early we will move the cutoff to the start of the year rather than mid year (i.e.&nbsp;instead of 2020-07-09 we will use 2020-01-01).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_filtered_data <span class="sc">|&gt;</span> </span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_filtered_data <span class="sc">|&gt;</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>This leaves us with the following stats:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>gt_min <span class="ot">&lt;-</span> <span class="fu">min</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>gt_max <span class="ot">&lt;-</span> <span class="fu">max</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>gt_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>collect_min <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">min</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>collect_max <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">max</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>collect_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">unlist</span>(<span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">unique</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>gt_min <span class="ot">&lt;-</span> <span class="fu">min</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>gt_max <span class="ot">&lt;-</span> <span class="fu">max</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>gt_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>collect_min <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">min</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>collect_max <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">max</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>collect_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">unlist</span>(<span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">unique</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <ul>
 <li>GT min: 2020-01-06 07:05:00</li>
@@ -337,32 +353,49 @@ Attaching package: 'dplyr'</code></pre>
 </ul>
 <p>As we would expect the GT table has both an earlier start and later finish, however the total count of unique dates is still way higher than is expected. To demonstate this, consider the following sampling rates:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gt_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(gt_max <span class="sc">-</span> gt_min)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>collect_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(collect_max <span class="sc">-</span> collect_min)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>gt_sample_rate <span class="ot">&lt;-</span> gt_range<span class="sc">/</span>gt_length</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>collect_sample_rate <span class="ot">&lt;-</span> collect_range<span class="sc">/</span>collect_length</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gt_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(gt_max <span class="sc">-</span> gt_min)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>collect_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(collect_max <span class="sc">-</span> collect_min)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>gt_sample_rate <span class="ot">&lt;-</span> gt_range<span class="sc">/</span>gt_length</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>collect_sample_rate <span class="ot">&lt;-</span> collect_range<span class="sc">/</span>collect_length</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <ul>
 <li>GT sample rate: 1.6448721</li>
 <li>Collection sample rate: 3.1695428</li>
 </ul>
-<p>This is basically saying the GT table has twice as many samples within the same timeframe as the collection of spreadsheets. I.e., with the timeframe established by the collection there are missing rows… We will leave this for the moment and come back to it later.</p>
+<p>This is basically saying the GT table has twice as many samples within the same timeframe as the collection of spreadsheets. I.e., with the timeframe established by the collection there are missing rows. This can be explained with the following plot which highlights a series of missing values for the 2022 period:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">do.call</span>(bind_rows, collection_clean_filtered_data), <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, <span class="at">y =</span> <span class="st">`</span><span class="at">pp um</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="exploring_dataframes_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This simply the case because we don’t appear to have an original record of the 2022 data on file.</p>
+<p>(Note, once the 2022 data is found this section is not necessary).</p>
 </section>
 <section id="comparisons" class="level1">
 <h1>Comparisons</h1>
 <p>With the tables as aligned as they are going to get we can now directly compare them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combine the list of datasets into one</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows, collection_clean_filtered_data)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>missing_collect_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(collection_clean_filtered_data, gt_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(`short name`, project, `station name`, `station
-class`, latitude, longitude, `sample date`, `acoustic depth`, `chl ug/l`, `no2
-um`, `no3 um`, `pn um`, `pp um`, `tss mg/l`, `secchi m`, `location name`)`</code></pre>
-</div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combine the list of datasets into one</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows, collection_clean_filtered_data)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>missing_collect_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(collection_clean_filtered_data, gt_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>This tells us there are 47 rows in the collection that don’t exist in the GT dataset.</p>
 <p>Our first assessment of these problems rows is that errors seem related to the time being missing in the date col (registering as 00:00:00), but there are still a few rows that do have times that have popped up. The errors for each of these have been identified as follows:</p>
@@ -379,69 +412,166 @@ um`, `no3 um`, `pn um`, `pp um`, `tss mg/l`, `secchi m`, `location name`)`</code
 <p>Overall, it looks like every issue of a row from a spreadsheet not found in the gt table is related to metadata.</p>
 <p>However we still need to compare in the other direction:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>missing_gt_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_clean_filtered_data, collection_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(`short name`, `location name`, `station name`,
-project, `station class`, `sample date`, latitude, longitude, `acoustic depth`,
-`pp um`, `pn um`, `no2 um`, `no3 um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
-</div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>missing_gt_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_clean_filtered_data, collection_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>This tells us there are 789 rows in the GT dataset that don’t exist in the collection dataset. At this point the issue identified with times is relevant again.</p>
 <p>The first thing we want to check, is if any of the missing GT rows are in the timeframe set out by the collection.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> missing_gt_rows <span class="sc">|&gt;</span> </span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="fu">min</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>) <span class="sc">&amp;</span> </span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&lt;</span> <span class="fu">max</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> missing_gt_rows <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="fu">min</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>) <span class="sc">&amp;</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&lt;</span> <span class="fu">max</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>Of which, 442 rows are.</p>
 <p>The second thing we want to do is eliminate the rows we already identified earlier, as we know the cause of those errors.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pseudo_matches <span class="ot">&lt;-</span> missing_collect_rows <span class="sc">|&gt;</span> </span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(missing_within) <span class="sc">|&gt;</span> <span class="co">#combine the two datasets</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, latitude, longitude))) <span class="sc">|&gt;</span> <span class="co">#group by everything but date, lat, and long (these drove the differences and if they are removed we will be able to find matches for the rows)</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">double =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span> <span class="co">#count rows that have doubled up</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(double <span class="sc">==</span> <span class="dv">2</span>) <span class="co"># keep rows that double (i.e have a match)</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">#use this pseudo match table, to remove the relevant rows</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(missing_within, pseudo_matches)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(`short name`, `location name`, `station name`,
-project, `station class`, `sample date`, latitude, longitude, `acoustic depth`,
-`pp um`, `pn um`, `no2 um`, `no3 um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>pseudo_matches <span class="ot">&lt;-</span> missing_collect_rows <span class="sc">|&gt;</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(missing_within) <span class="sc">|&gt;</span> <span class="co">#combine the two datasets</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, latitude, longitude))) <span class="sc">|&gt;</span> <span class="co">#group by everything but date, lat, and long (these drove the differences and if they are removed we will be able to find matches for the rows)</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">double =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span> <span class="co">#count rows that have doubled up</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(double <span class="sc">==</span> <span class="dv">2</span>) <span class="co"># keep rows that double (i.e have a match)</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co">#use this pseudo match table, to remove the relevant rows</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(missing_within, pseudo_matches)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
-</div>
-<p>Something else we can try is to completely remove metadata information and see if the unique combination of observation values have matches.</p>
+<p>Next we want to confirm that the differences are not driven by mistakes in the metadata (such as different lat and long values). TO do this we will completely remove metadata information and see if the unique combination of observation values have matches.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>gt_no_meta <span class="ot">&lt;-</span> missing_within <span class="sc">|&gt;</span> </span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>col_no_meta <span class="ot">&lt;-</span> collection_clean_filtered_data <span class="sc">|&gt;</span> </span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>missing_no_meta <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_no_meta, col_no_meta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gt_no_meta <span class="ot">&lt;-</span> missing_within <span class="sc">|&gt;</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>col_no_meta <span class="ot">&lt;-</span> collection_clean_filtered_data <span class="sc">|&gt;</span> </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>missing_no_meta <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_no_meta, col_no_meta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(`acoustic depth`, `pp um`, `pn um`, `no2 um`, `no3
 um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
 </div>
 </div>
 <p>However this does not eliminate any additional rows, which further reinforces the idea that these missing rows are true positives.</p>
+<p>Next we want to consider the the 2022 financial year period, and the fact that we don’t have a collection spreadsheet for that time. Therefore, we will need to remove this period from the GT dataset to not get false positive missing values.</p>
+<p>(Note, once the 2022 data is found this section is not necessary).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(collection_clean_filtered_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, <span class="at">y =</span> <span class="st">`</span><span class="at">pp um</span><span class="st">`</span>)) <span class="sc">+</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="exploring_dataframes_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>missing_within_no_22 <span class="ot">&lt;-</span> missing_within <span class="sc">|&gt;</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&lt;</span> <span class="st">"2021-07-01"</span> <span class="sc">|</span> <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="st">"2022-06-30"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>This limits us down to only 181 rows. Which is a reasonable number to start manually inspecting for trends.</p>
+<p>What is immediately obvious is the type of sites still missing. Specifically:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(missing_within_no_22<span class="sc">$</span><span class="st">`</span><span class="at">short name</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "TUL8"  "TUL6"  "BUR13" "C1"    "TUL2"  "WHI1"  "C5"    "TUL3"  "TUL5" 
+[10] "C8"    "RM1"   "RM7"   "C11"   "RM8"   "TUL7"  "WHI6"  "WHI4"  "C4"   
+[19] "WHI7"  "RM3"   "RM10"  "WHI5"  "TUL4"  "TUL9"  "TUL10" "TUL11" "BUR10"
+[28] "C6"   </code></pre>
 </div>
 </div>
+<p>The only sites that are missing are those outside the Dry Tropics region. This is because the 2021 financial year dataset is exclusive to the Dry Tropics sites.</p>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Once all false positives have been accounted for, there are no significant differences between the groundtruth, and the collection of spreadsheets.</p>
+</section>
+<section id="reusability" class="level1">
+<h1>Reusability</h1>
+<p>Due to the unique nature of each case, the resuability of this exploration is limited. However, below are some generalised steps that should always been applied along with custom explorations.</p>
+<section id="load-two-sets" class="level2">
+<h2 class="anchored" data-anchor-id="load-two-sets">Load Two Sets</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#get a list of datasets</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">#file_names &lt;- list.files("path_to_data", full.names = TRUE)</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co">#load the master (ground-truth) data by itself</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">#gt_data &lt;- read_xlsx("path_to_data") or read_csv()</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co">#load the collection of datasets together</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co">#collection_data &lt;- map(file_names[X:X], read_xlsx)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+</section>
+<section id="establish-column-names" class="level2">
+<h2 class="anchored" data-anchor-id="establish-column-names">Establish Column Names</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract all column names</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#all_col_names &lt;- sort(unlist(map(c(list(gt_data), collection_data), colnames)))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="standardised-column-names" class="level2">
+<h2 class="anchored" data-anchor-id="standardised-column-names">Standardised Column Names</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a list of replacements (CUSTOMISE)</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#replacements &lt;- c("X" = "Y")</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#generalised cleaner</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#col_name_cleaner &lt;- function(input_string) {</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">#    input_string |&gt; </span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">#        as.character() |&gt; </span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">#        str_to_lower() |&gt; </span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co">#        str_remove_all("\\(|\\)") |&gt; </span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co">#        str_replace_all("_", " ") |&gt; </span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">#        str_replace_all(replacements)</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co">#}</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co">#using the generalised cleaner</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co">#gt_data &lt;- gt_data |&gt; </span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="co">#    rename_with(</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="co">#        .cols = everything(),</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co">#        ~col_name_cleaner(.)</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="co">#    )</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="co">#collection_clean_data &lt;- map(collection_data, ~rename_with(.x, ~col_name_cleaner(.)))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="define-row-boundaries" class="level2">
+<h2 class="anchored" data-anchor-id="define-row-boundaries">Define Row Boundaries</h2>
+<p>Note: this is almost entirely unique to the case study, no (valuable) reuseable code has been identified.</p>
+</section>
+<section id="comparing-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-dataset">Comparing Dataset</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Expand to view code.</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combine the list of datasets (the collection) into one dataset</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">#single_df &lt;- do.call(bind_rows, list_of_df)</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="co">#missing &lt;- anti_join(x, y)</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co">#likewise, do the reverse to cover all bases</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co">#missing_2 &lt;- anti_join(y, x)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
 </section>
 
 </main>
