@@ -2,9 +2,9 @@
 title: "Comparing Datasets"
 format:
   html:
-    code-fold: true
     code-overflow: wrap
     code-summary: "Expand to view code."
+    embed-resources: true
 ---
 
 # Introduction
@@ -168,7 +168,7 @@ all_col_names[!exists_2]
 
 ```
 
-On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles again, not how the columns of the collection now exists fully within the master, and that the columns of the master have been cut down to match:
+On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles again, note how the columns of the collection now exists fully within the master, and that the columns of the master have been cut down to match:
 
 ![](images/image_5.png){height=2in}
 
@@ -262,7 +262,7 @@ ggplot(do.call(bind_rows, collection_clean_filtered_data), aes(x = `sample date`
 
 ```
 
-This simply the case because we don't appear to have an original record of the 2022 data on file. 
+This is simply the case because we don't appear to have an original record of the 2022 data on file. 
 
 (Note, once the 2022 data is found this section is not necessary).
 
@@ -342,6 +342,7 @@ missing_within <- anti_join(missing_within, pseudo_matches)
 Next we want to confirm that the differences are not driven by mistakes in the metadata (such as different lat and long values). TO do this we will completely remove metadata information and see if the unique combination of observation values have matches.
 
 ```{r}
+#| output: FALSE
 
 gt_no_meta <- missing_within |> 
     select("acoustic depth", "pp um", "pn um", "no2 um", "no3 um", "tss mg/l", "chl ug/l", "secchi m")
@@ -380,7 +381,7 @@ The only sites that are missing are those outside the Dry Tropics region. This i
 
 # Conclusion
 
-Once all false positives have been accounted for, there are no significant differences between the groundtruth, and the collection of spreadsheets.
+Once all false positives have been accounted for, there are no significant differences between the groundtruth, and the collection of spreadsheets for the Dry Tropics region's data analysis
 
 # Reusability
 
@@ -443,7 +444,7 @@ Due to the unique nature of each case, the resuability of this exploration is li
 
 Note: this is almost entirely unique to the case study, no (valuable) reuseable code has been identified.
 
-## Comparing Dataset
+## Comparing Datasets
 
 ```{r}
 
