@@ -1,44 +1,70 @@
 ---
-title: "Untitled"
-format: html
+title: "Comparing Datasets"
+format:
+  html:
+    code-fold: true
+    code-overflow: wrap
+    code-summary: "Expand to view code."
 ---
 
 # Introduction
 
-Problem: Do all rows from a collection of spreadsheets exist in a master (AKA ground-truth) spreadsheet.
+## Problem
+
+This script is designed to compare a collection of spreadsheets against a master (AKA ground-truth) spreadsheet. The objective is to determine if all rows in the collections of spreadsheets exist in the master, whilst also confirming that the master does not have extra rows that the collections are missing.
 
 In a generalised sense, this problem can be visualised with the following diagrams.
 
  1. Imagine the master spreadsheet is represented by a grey rectangle
  2. Likewise, each of the other spreadsheets are represented by yellow, blue, and green rectangles
 
- []() Insert Image
+ ![](images/image_1.png){height=2in}
 
- 3. If all rows from the collection of spreadsheets (yellow, blue, green) exist in the master spreadsheet (grey), this can be visualised like this:
+ 3. If all rows from the collection of spreadsheets (yellow, blue, green) exist in the master spreadsheet (grey), this can be visualised something like this:
 
-[]() Insert Image
+![](images/image_2.png){height=2in}
 
  4. However if the collection of spreadsheets have columns that don't exist in the master, it would look like this:
 
-[]() Insert Image
+![](images/image_3.png){height=2in}
 
- 5. Or if the collection had rows that didn't exist in the master it would look like this:
+ 5. Likewise if the collection had rows that didn't exist in the master it would look like this:
 
-[]() Insert Image
+![](images/image_4.png){height=2in}
 
-The question becomes; do these rows/columns actually not exist in the master, or is there some small discrepency that is causing the issue?
+The task becomes determining where the collection of spreadsheets sit within the master spreadsheet, and identifying if the rows/columns actually do not exist in the master, or is there some small discrepency such as a typo that is causing the issue.
+
+## Solution
+
+There are several factors that may falsely cause discrepencies that must be consider when solving this issue, we must account for:
+
+ 1. Alternative column names for the same data
+ 2. Duplicate rows within the collection (e.g. due to overlapping dates)
+ 3. Varied dataset scopes (e.g. a spreadsheet within the collection may only focus on DT, whilst another might focus on N3)
+ 4. An extended mastersheet (i.e. the master sheet spans a greater length of time and will naturally have rows that don't exist in the collection, likewise it spans a larger list of column variables than exists in the collection)
+
+ After accounting for these false positives, it is then possible to identify the source of any true positives (discrepencies) such as:
+
+  1. Missing rows 
+  2. Missing columns
+  3. Cell errors
+
+Finally, the solution must be as generic as possible so it can be applied in other scenarios.
+
+# Set Up
+
+Only a very simple set up is required, a few basic packages and then reading in all the data. Note that the collection of spreadsheets should be stored in a list, and the master should be kept separate.
 
 ```{r}
+#| output: FALSE
 
 library(dplyr)
-#library(readr)
 library(readxl)
 library(purrr)
 library(stringr)
+library(ggplot2)
 
 ```
-
-The first step is to read in all of the data. The master spreadsheet should be kept separate to the collection of spreadsheets.
 
 ```{r}
 
@@ -55,7 +81,7 @@ collection_data <- map(file_names[1:3], ~read_xlsx(.x, 2))
 
 # Columns
 
-Next we will need to compile a list of all column names that exist across both the gt and collection datasets. The idea here is to determine the amount of "true" variation in column names. To make things easier to check, the column names should be ordered alphabetically.
+The first step is to address differences in column names, to do this we will need to compile a list of all column names that exist across both the gt and collection datasets. The idea here is to determine the amount of "true" variation in column names. To make things easier to check, the column names should be ordered alphabetically.
 
 ```{r}
 
@@ -142,9 +168,9 @@ all_col_names[!exists_2]
 
 ```
 
-On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles we have arrive at this point:
+On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles again, not how the columns of the collection now exists fully within the master, and that the columns of the master have been cut down to match:
 
-[]() insert image
+![](images/image_5.png){height=2in}
 
 ```{r}
 
@@ -155,13 +181,9 @@ gt_clean_data <- gt_data |>
 
 # Rows
 
-Now that columns are aligned, we can look at rows. Referencing the coloured rectangles again, our data looks something like this:
+Now that we have established that all differences in columns were false positives we can move on to inspecting rows.
 
-[]() insert image
-
-In the case where we have more rows in our ground-truth dataset than the collections - this might be okay, the ground-truth dataset has more sites and a longer timeframe so we would expect this to answer that. However, in the case when rows exist in the collection that don't in the ground-truth... that is a problem. Lets take a look.
-
-First we will filter data by "short name" to only keep sites of intest (this vector can be updated as needed).
+First we will filter data by "short name" to only keep sites of interest (this vector can be updated as needed). This removes sites that are outside the N3 region and/or are not regularly monitored.
 
 ```{r}
 
@@ -182,7 +204,7 @@ collection_clean_filtered_data <- map(collection_clean_data, ~filter(.x, `short 
 
 ```
 
-Then we need to restrict our timeframes, looking at the min date from the collection is a reasonable cutoff point, but to ensure we don't make any mistakes we will move that to the start of the year rather than mid year (i.e. instead of 2020-07-09 we will use 2020-01-01).
+Then we need to restrict our timeframes, looking at the min date from the collection is a reasonable cutoff point, but to ensure we don't make any mistakes if the collection has been accidently cut off early we will move the cutoff to the start of the year rather than mid year (i.e. instead of 2020-07-09 we will use 2020-01-01).
 
 ```{r}
 
@@ -193,76 +215,245 @@ collection_clean_filtered_data <- map(collection_clean_filtered_data, ~filter(.x
 
 ```
 
-```{r}
-
-length(unlist(map(collection_clean_filtered_data, ~unique(.x$`sample date`))))
-
-```
+This leaves us with the following stats:
 
 ```{r}
 
-length(unique(gt_clean_filtered_data$`sample date`))
+gt_min <- min(gt_clean_filtered_data$`sample date`)
+gt_max <- max(gt_clean_filtered_data$`sample date`)
+gt_length <- length(unique(gt_clean_filtered_data$`sample date`))
+
+collect_min <- min(do.call("c", map(collection_clean_filtered_data, ~min(.x$`sample date`))))
+collect_max <- max(do.call("c", map(collection_clean_filtered_data, ~max(.x$`sample date`))))
+collect_length <- length(unique(unlist(map(collection_clean_filtered_data, ~unique(.x$`sample date`)))))
 
 ```
 
-With both datasets capped to the same range, we can then append a tracking column to our two sets of data
+ - GT min: `r gt_min`
+ - GT max: `r gt_max`
+ - GT count: `r gt_length`
+ - GT range: `r gt_max - gt_min`
+ - Collection min: `r collect_min`
+ - Collection max: `r collect_max`
+ - Collection count: `r collect_length`
+ - Collection range: `r collect_max - collect_min`
 
- - GT = "Ground Truth" (doing the checking)
- - U = "Unknown" (being checked) 
-
- ```{r}
-
-#first make all df be unknown, then update just the one df to GT
-collection_clean_filtered_data <- map(collection_clean_filtered_data, ~mutate(.x, type = "U", .before = 1))
-gt_clean_filtered_data <- mutate(gt_clean_filtered_data, type = "GT", .before = 1)
-
- ```
-
-Following this, all data can be combined into one large dataset.
+As we would expect the GT table has both an earlier start and later finish, however the total count of unique dates is still way higher than is expected. To demonstate this, consider the following sampling rates:
 
 ```{r}
 
-all_data <- do.call(bind_rows, c(list(gt_clean_filtered_data), collection_clean_filtered_data))
+gt_range <- as.numeric(gt_max - gt_min)
+collect_range <- as.numeric(collect_max - collect_min)
+
+gt_sample_rate <- gt_range/gt_length
+collect_sample_rate <- collect_range/collect_length
 
 ```
 
-And then we can group data by everything except the appended type column and count the number of rows in each group. The logic here is that each row in the collection, should have an equivalent row in the ground-truth dataset. Therefore, ever row with the type "U" should have a group count of 2. Conversely, most rows with the type "GT" should have a group count of 2, but it should be noted that the GT dataset has some more recent data, and some of the collection data doesn't have all samples for a site over the period. 
+ - GT sample rate: `r gt_sample_rate`
+ - Collection sample rate: `r collect_sample_rate`
 
-If a row with "U" has a group count of 1 - this is a big problem. If a row with "GT" has a group count of 1 - this is a small to moderate problem.
+This is basically saying the GT table has twice as many samples within the same timeframe as the collection of spreadsheets. I.e., with the timeframe established by the collection there are missing rows. This can be explained with the following plot which highlights a series of missing values for the 2022 period:
 
 ```{r}
 
-all_data <- all_data |> 
-    group_by(across(!type)) |> 
-    mutate(count = n()) |> 
-    ungroup()
+ggplot(collection_clean_filtered_data, aes(x = `sample date`, y = `pp um`)) +
+    geom_line()
 
 ```
+
+This simply the case because we don't appear to have an original record of the 2022 data on file. 
+
+(Note, once the 2022 data is found this section is not necessary).
+
+# Comparisons
+
+With the tables as aligned as they are going to get we can now directly compare them.
 
 ```{r}
+#| output: FALSE
 
-problem_rows <- all_data |> 
-    filter(type == "U" & count < 2)
+#combine the list of datasets into one
+collection_clean_filtered_data <- do.call(bind_rows, collection_clean_filtered_data)
+
+#use an anti join to find rows in x that dont exist in y: anti_join(x,y)
+missing_collect_rows <- anti_join(collection_clean_filtered_data, gt_clean_filtered_data)
 
 ```
+
+This tells us there are `r nrow(missing_collect_rows)` rows in the collection that don't exist in the GT dataset.
 
 Our first assessment of these problems rows is that errors seem related to the time being missing in the date col (registering as 00:00:00), but there are still a few rows that do have times that have popped up. The errors for each of these have been identified as follows:
 
- - BUR4 2023-03-07 12:00:00 it seems like the GT table has no lat val
- - RM10 2023-01-26 13:00:00 the lat and long are .01 off
- - RM7 2023-01-26 12:10:00 long is .9 off - a big difference, only once though. a typo?
- - RM10 2023-01-12 12:44:00 the long is .01 off
- - RM10 2022-07-18 10:22:00 the long is .03 off
- - TUL 2023-01-11 10:55:00 the long is .12 off
- - BUR4 2023-01-04 11:05:00 the lat and long are .01 off
+ - 40 rows are missing time values, the remaining 7 rows have the following errors:
+ - BUR4 2023-03-07 12:00:00, the GT table has no lat val
+ - RM10 2023-01-26 13:00:00, the lat and long are .01 off
+ - RM7 2023-01-26 12:10:00, long is .9 off - a big difference, only once though which likely indicates a typo
+ - RM10 2023-01-12 12:44:00, the long is .01 off
+ - RM10 2022-07-18 10:22:00, the long is .03 off
+ - TUL 2023-01-11 10:55:00, the long is .12 off
+ - BUR4 2023-01-04 11:05:00, the lat and long are .01 off
 
 Overall, it looks like every issue of a row from a spreadsheet not found in the gt table is related to metadata.
 
-Comparing in the other direction there are a few hundred rows with a group count of 1, so a manual check is probably not going to cut it.
+However we still need to compare in the other direction:
+
+```{r}
+#| output: FALSE
+
+#use an anti join to find rows in x that dont exist in y: anti_join(x,y)
+missing_gt_rows <- anti_join(gt_clean_filtered_data, collection_clean_filtered_data)
+
+```
+
+This tells us there are `r nrow(missing_gt_rows)` rows in the GT dataset that don't exist in the collection dataset. At this point the issue identified with times is relevant again. 
+
+The first thing we want to check, is if any of the missing GT rows are in the timeframe set out by the collection.
 
 ```{r}
 
-problem_rows_2 <- all_data |> 
-    filter(type == "GT" & count < 2)
+missing_within <- missing_gt_rows |> 
+    filter(
+        `sample date` > min(collection_clean_filtered_data$`sample date`) & 
+        `sample date` < max(collection_clean_filtered_data$`sample date`)
+    )
+
+```
+
+Of which, `r nrow(missing_within)` rows are.
+
+The second thing we want to do is eliminate the rows we already identified earlier, as we know the cause of those errors.
+
+```{r}
+#| output: FALSE
+
+pseudo_matches <- missing_collect_rows |> 
+    bind_rows(missing_within) |> #combine the two datasets
+    group_by(across(-c(`sample date`, latitude, longitude))) |> #group by everything but date, lat, and long (these drove the differences and if they are removed we will be able to find matches for the rows)
+    mutate(double = n()) |> #count rows that have doubled up
+    ungroup() |> 
+    filter(double == 2) # keep rows that double (i.e have a match)
+
+#use this pseudo match table, to remove the relevant rows
+missing_within <- anti_join(missing_within, pseudo_matches)
+
+```
+
+Next we want to confirm that the differences are not driven by mistakes in the metadata (such as different lat and long values). TO do this we will completely remove metadata information and see if the unique combination of observation values have matches.
+
+```{r}
+
+gt_no_meta <- missing_within |> 
+    select("acoustic depth", "pp um", "pn um", "no2 um", "no3 um", "tss mg/l", "chl ug/l", "secchi m")
+
+col_no_meta <- collection_clean_filtered_data |> 
+    select("acoustic depth", "pp um", "pn um", "no2 um", "no3 um", "tss mg/l", "chl ug/l", "secchi m")
+
+missing_no_meta <- anti_join(gt_no_meta, col_no_meta)
+
+```
+
+However this does not eliminate any additional rows, which further reinforces the idea that  these missing rows are true positives.
+
+Next we want to consider the the 2022 financial year period, and the fact that we don't have a collection spreadsheet for that time. Therefore, we will need to remove this period from the GT dataset to not get false positive missing values.
+
+(Note, once the 2022 data is found this section is not necessary).
+
+```{r}
+
+missing_within_no_22 <- missing_within |> 
+    filter(`sample date` < "2021-07-01" | `sample date` > "2022-06-30")
+
+```
+
+This limits us down to only `r nrow(missing_within_no_22)` rows. Which is a reasonable number to start manually inspecting for trends. 
+
+What is immediately obvious is the type of sites still missing. Specifically:
+
+```{r}
+
+unique(missing_within_no_22$`short name`)
+
+```
+
+The only sites that are missing are those outside the Dry Tropics region. This is because the 2021 financial year dataset is exclusive to the Dry Tropics sites.
+
+# Conclusion
+
+Once all false positives have been accounted for, there are no significant differences between the groundtruth, and the collection of spreadsheets.
+
+# Reusability
+
+Due to the unique nature of each case, the resuability of this exploration is limited. However, below are some generalised steps that should always been applied along with custom explorations.
+
+## Load Two Sets
+
+```{r}
+
+#get a list of datasets
+#file_names <- list.files("path_to_data", full.names = TRUE)
+
+#load the master (ground-truth) data by itself
+#gt_data <- read_xlsx("path_to_data") or read_csv()
+
+#load the collection of datasets together
+#collection_data <- map(file_names[X:X], read_xlsx)
+
+```
+
+## Establish Column Names
+
+```{r}
+
+#extract all column names
+#all_col_names <- sort(unlist(map(c(list(gt_data), collection_data), colnames)))
+
+```
+
+## Standardised Column Names
+
+```{r}
+
+#create a list of replacements (CUSTOMISE)
+#replacements <- c("X" = "Y")
+
+#generalised cleaner
+#col_name_cleaner <- function(input_string) {
+
+#    input_string |> 
+#        as.character() |> 
+#        str_to_lower() |> 
+#        str_remove_all("\\(|\\)") |> 
+#        str_replace_all("_", " ") |> 
+#        str_replace_all(replacements)
+#}
+
+#using the generalised cleaner
+#gt_data <- gt_data |> 
+#    rename_with(
+#        .cols = everything(),
+#        ~col_name_cleaner(.)
+#    )
+
+#collection_clean_data <- map(collection_data, ~rename_with(.x, ~col_name_cleaner(.)))
+
+```
+
+## Define Row Boundaries
+
+Note: this is almost entirely unique to the case study, no (valuable) reuseable code has been identified.
+
+## Comparing Dataset
+
+```{r}
+
+#combine the list of datasets (the collection) into one dataset
+#single_df <- do.call(bind_rows, list_of_df)
+
+#use an anti join to find rows in x that dont exist in y
+#missing <- anti_join(x, y)
+
+#likewise, do the reverse to cover all bases
+#missing_2 <- anti_join(y, x)
 
 ```

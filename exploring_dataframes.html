@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Untitled</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="exploring_dataframes_files/libs/clipboard/clipboard.min.js"></script>
+<script src="exploring_dataframes_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="exploring_dataframes_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="exploring_dataframes_files/libs/quarto-html/popper.min.js"></script>
+<script src="exploring_dataframes_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="exploring_dataframes_files/libs/quarto-html/anchor.min.js"></script>
+<link href="exploring_dataframes_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="exploring_dataframes_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="exploring_dataframes_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="exploring_dataframes_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="exploring_dataframes_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Untitled</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<section id="problem" class="level2">
+<h2 class="anchored" data-anchor-id="problem">Problem</h2>
+<p>This script is designed to compare a collection of spreadsheets against a master (AKA ground-truth) spreadsheet. The objective is to determine if all rows in the collections of spreadsheets exist in the master, whilst also confirming that the master does not have extra rows that the collections are missing.</p>
+<p>In a generalised sense, this problem can be visualised with the following diagrams.</p>
+<ol type="1">
+<li>Imagine the master spreadsheet is represented by a grey rectangle</li>
+<li>Likewise, each of the other spreadsheets are represented by yellow, blue, and green rectangles</li>
+</ol>
+<p><img src="images/image_1.png" class="img-fluid"></p>
+<ol start="3" type="1">
+<li>If all rows from the collection of spreadsheets (yellow, blue, green) exist in the master spreadsheet (grey), this can be visualised something like this:</li>
+</ol>
+<p><img src="images/image_2.png" class="img-fluid"></p>
+<ol start="4" type="1">
+<li>However if the collection of spreadsheets have columns that don’t exist in the master, it would look like this:</li>
+</ol>
+<p><img src="images/image_3.png" class="img-fluid"></p>
+<ol start="5" type="1">
+<li>Likewise if the collection had rows that didn’t exist in the master it would look like this:</li>
+</ol>
+<p><img src="images/image_4.png" class="img-fluid"></p>
+<p>The task becomes determining where the collection of spreadsheets sit within the master spreadsheet, and identifying if the rows/columns actually do not exist in the master, or is there some small discrepency such as a typo that is causing the issue.</p>
+</section>
+<section id="solution" class="level2">
+<h2 class="anchored" data-anchor-id="solution">Solution</h2>
+<p>There are several factors that may falsely cause discrepencies that must be consider when solving this issue, we must account for:</p>
+<ol type="1">
+<li>Alternative column names for the same data</li>
+<li>Duplicate rows within the collection (e.g.&nbsp;due to overlapping dates)</li>
+<li>Varied dataset scopes (e.g.&nbsp;a spreadsheet within the collection may only focus on DT, whilst another might focus on N3)</li>
+<li>An extended mastersheet (i.e.&nbsp;the master sheet spans a greater length of time and will naturally have rows that don’t exist in the collection, likewise it spans a larger list of column variables than exists in the collection)</li>
+</ol>
+<p>After accounting for these false positives, it is then possible to identify the source of any true positives (discrepencies) such as:</p>
+<ol type="1">
+<li>Missing rows</li>
+<li>Missing columns</li>
+<li>Cell errors</li>
+</ol>
+<p>Finally, the solution must be as generic as possible so it can be applied in other scenarios.</p>
+</section>
+</section>
+<section id="set-up" class="level1">
+<h1>Set Up</h1>
+<p>Only a very simple set up is required, a few basic packages and then reading in all the data. Note that the collection of spreadsheets should be stored in a list, and the master should be kept separate.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(readr)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'readxl' was built under R version 4.5.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#get a list of datasets</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>file_names <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="st">"data/"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#load the master (ground-truth) data by itself</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(file_names[<span class="dv">4</span>], <span class="at">sheet =</span> <span class="dv">2</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#load the collection of datasets together</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>collection_data <span class="ot">&lt;-</span> <span class="fu">map</span>(file_names[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>], <span class="sc">~</span><span class="fu">read_xlsx</span>(.x, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="columns" class="level1">
+<h1>Columns</h1>
+<p>The first step is to address differences in column names, to do this we will need to compile a list of all column names that exist across both the gt and collection datasets. The idea here is to determine the amount of “true” variation in column names. To make things easier to check, the column names should be ordered alphabetically.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract all column names</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> <span class="fu">sort</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlist</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">map</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="fu">list</span>(gt_data), collection_data), </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            colnames</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>all_col_names</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "ACOUSTIC_DEPTH"         "ACOUSTIC_DEPTH"         "ACOUSTIC_DEPTH"        
+ [4] "ATTRIBUTION"            "CHL (ug/L)"             "Chl_ug/L"              
+ [7] "Chl_ug/L"               "Chl_ug/L"               "COLLECTION_START_DATE" 
+[10] "DEPTH_AVG_TO"           "DIP (uM)"               "LATITUDE"              
+[13] "LATITUDE"               "LATITUDE"               "LATITUDE"              
+[16] "LOCATION_NAME"          "LOCATION_NAME"          "LOCATION_NAME"         
+[19] "LOCATION_NAME"          "LONGITUDE"              "LONGITUDE"             
+[22] "LONGITUDE"              "LONGITUDE"              "NH4 (uM)"              
+[25] "NH4_INSITU (uM)"        "NO2 (uM)"               "NO2_uM"                
+[28] "NO2_uM"                 "NO2_uM"                 "NO3 (uM)"              
+[31] "NO3_uM"                 "NO3_uM"                 "NO3_uM"                
+[34] "PN_SHIM (uM)"           "PN_uM"                  "PN_uM"                 
+[37] "PN_uM"                  "PP (uM)"                "PP_uM"                 
+[40] "PP_uM"                  "PP_uM"                  "PROJECT"               
+[43] "PROJECT"                "PROJECT"                "PROJECT"               
+[46] "SAMPLE_DATE"            "SAMPLE_DATE"            "SAMPLE_DATE"           
+[49] "SECCHI_DEPTH (m)"       "Secchi_depth_m"         "Secchi_depth_m"        
+[52] "Secchi_m"               "SHORT_NAME"             "SHORT_NAME"            
+[55] "SHORT_NAME"             "SHORT_NAME"             "SS (mg/L)"             
+[58] "STATION_CLASS"          "STATION_CLASS"          "STATION_CLASS"         
+[61] "STATION_CLASS"          "STATION_NAME"           "STATION_NAME"          
+[64] "STATION_NAME"           "STATION_NAME"           "TDN_PER (uM)"          
+[67] "TDN_SHIM (uM)"          "TDP_PER (uM)"           "TEMP (degrees Celsius)"
+[70] "TSS_mg/L"               "TSS_mg/L"               "TSS_mg/L"              </code></pre>
+</div>
+</div>
+<p>Looking at this list of names we can already spot some double ups, for instance “CHL (ug/L)” and “Chl_ug/L” refer to the same column and should have their name standardised. However, this is an area to tread cautiously - if you updated “XYZ (ug/L)” to match “XYZ_mg/L” you would be making a fatal error.</p>
+<p>Generally it is a good idea to start with grammar and syntax, things like capitals, brackets, underscores, etc. Following this some obvious changes such as aligning “secchi depth m” and “secchi m” can occur. Finally, after some detailed exploration of the datasets we can indentify things such as “pn um” = “pn shim um”, “tss mg/l” = “ss mg/l” and “depth avg to” = “acoustic depth”.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a list of replacements</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>replacements <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"collection start date"</span> <span class="ot">=</span> <span class="st">"sample date"</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"secchi depth m"</span> <span class="ot">=</span> <span class="st">"secchi m"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pn shim um"</span> <span class="ot">=</span> <span class="st">"pn um"</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"^ss mg/l"</span> <span class="ot">=</span> <span class="st">"tss mg/l"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"depth avg to"</span> <span class="ot">=</span> <span class="st">"acoustic depth"</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>all_col_names <span class="ot">&lt;-</span> all_col_names <span class="sc">|&gt;</span> </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(replacements) <span class="sc">|&gt;</span> </span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>()</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">#generalise this method into a function for use later</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>col_name_cleaner <span class="ot">&lt;-</span> <span class="cf">function</span>(input_string) {</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    input_string <span class="sc">|&gt;</span> </span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.character</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_to_lower</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_remove_all</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(<span class="st">"_"</span>, <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">str_replace_all</span>(replacements)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This leaves us with a list of <strong>all</strong> possible unique column names across <strong>all</strong> of our datasets. Ideally we would then find that every single name in this list exists in the groundtruth spreadsheet. So lets check that out.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#run function on gt data</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>gt_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename_with</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">.cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#compare gt data column names to the list of all names</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(gt_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+<p>Sucess!</p>
+<p>Conversely, the colnames that don’t exist in the collection are:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>collection_clean_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_data, <span class="sc">~</span><span class="fu">rename_with</span>(.x, <span class="sc">~</span><span class="fu">col_name_cleaner</span>(.)))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>exists_2 <span class="ot">&lt;-</span> all_col_names <span class="sc">%in%</span> <span class="fu">colnames</span>(collection_clean_data[[<span class="dv">1</span>]])</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>all_col_names[<span class="sc">!</span>exists_2]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "attribution"          "dip um"               "nh4 um"              
+[4] "nh4 insitu um"        "tdn per um"           "tdn shim um"         
+[7] "tdp per um"           "temp degrees celsius"</code></pre>
+</div>
+</div>
+<p>On this side of things while more columns are missing, none are columns that we have historically used in the Technical Report. Therefore, for the purposes of this comparison these columns will be removed from the ground-truth dataset to basically arrive at the point where all columns are shared. Referencing the coloured rectangles again, not how the columns of the collection now exists fully within the master, and that the columns of the master have been cut down to match:</p>
+<p><img src="images/image_5.png" class="img-fluid"></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>gt_clean_data <span class="ot">&lt;-</span> gt_data <span class="sc">|&gt;</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">!</span>all_col_names[<span class="sc">!</span>exists_2])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="rows" class="level1">
+<h1>Rows</h1>
+<p>Now that we have established that all differences in columns were false positives we can move on to inspecting rows.</p>
+<p>First we will filter data by “short name” to only keep sites of interest (this vector can be updated as needed). This removes sites that are outside the N3 region and/or are not regularly monitored.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>short_names_to_keep <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"BUR1"</span>, <span class="st">"BUR10"</span>, <span class="st">"BUR13"</span>, <span class="st">"BUR2"</span>, <span class="st">"BUR4"</span>, <span class="st">"BUR7"</span>, <span class="st">"BUR8"</span>, <span class="co">#(burdekin/dry tropics sites)</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"C1"</span>, <span class="st">"C11"</span>, <span class="st">"C4"</span>, <span class="st">"C5"</span>, <span class="st">"C6"</span>, <span class="st">"C8"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RM1"</span>, <span class="st">"RM10"</span>, <span class="st">"RM11"</span>, <span class="st">"RM12"</span>, <span class="st">"RM2"</span>, <span class="st">"RM3"</span>, <span class="st">"RM4"</span>, <span class="st">"RM5"</span>, <span class="st">"RM6"</span>, <span class="st">"RM7"</span>, <span class="st">"RM8"</span>, <span class="st">"RM9"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TUL10"</span>, <span class="st">"TUL11"</span>, <span class="st">"TUL2"</span>, <span class="st">"TUL3"</span>, <span class="st">"TUL4"</span>, <span class="st">"TUL5"</span>, <span class="st">"TUL6"</span>, <span class="st">"TUL7"</span>, <span class="st">"TUL8"</span>, <span class="st">"TUL9"</span>, <span class="co">#(Wet Tropics)</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"WHI1"</span>, <span class="st">"WHI4"</span>, <span class="st">"WHI5"</span>, <span class="st">"WHI6"</span>, <span class="st">"WHI7"</span> <span class="co">#(Whitsundays)</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to ground_truth</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_data <span class="sc">|&gt;</span> </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co">#apply to collection</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">short name</span><span class="st">`</span> <span class="sc">%in%</span> short_names_to_keep))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then we need to restrict our timeframes, looking at the min date from the collection is a reasonable cutoff point, but to ensure we don’t make any mistakes if the collection has been accidently cut off early we will move the cutoff to the start of the year rather than mid year (i.e.&nbsp;instead of 2020-07-09 we will use 2020-01-01).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>gt_clean_filtered_data <span class="ot">&lt;-</span> gt_clean_filtered_data <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">filter</span>(.x, <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;=</span> <span class="st">"2020-01-01"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This leaves us with the following stats:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>gt_min <span class="ot">&lt;-</span> <span class="fu">min</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>gt_max <span class="ot">&lt;-</span> <span class="fu">max</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>gt_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(gt_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>collect_min <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">min</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>collect_max <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">do.call</span>(<span class="st">"c"</span>, <span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">max</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>))))</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>collect_length <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">unlist</span>(<span class="fu">map</span>(collection_clean_filtered_data, <span class="sc">~</span><span class="fu">unique</span>(.x<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>GT min: 2020-01-06 07:05:00</li>
+<li>GT max: 2025-06-23 12:36:00</li>
+<li>GT count: 1213</li>
+<li>GT range: 1995.22986111111</li>
+<li>Collection min: 2020-07-09</li>
+<li>Collection max: 2024-06-10 15:12:00</li>
+<li>Collection count: 452</li>
+<li>Collection range: 1432.63333333333</li>
+</ul>
+<p>As we would expect the GT table has both an earlier start and later finish, however the total count of unique dates is still way higher than is expected. To demonstate this, consider the following sampling rates:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gt_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(gt_max <span class="sc">-</span> gt_min)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>collect_range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(collect_max <span class="sc">-</span> collect_min)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>gt_sample_rate <span class="ot">&lt;-</span> gt_range<span class="sc">/</span>gt_length</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>collect_sample_rate <span class="ot">&lt;-</span> collect_range<span class="sc">/</span>collect_length</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>GT sample rate: 1.6448721</li>
+<li>Collection sample rate: 3.1695428</li>
+</ul>
+<p>This is basically saying the GT table has twice as many samples within the same timeframe as the collection of spreadsheets. I.e., with the timeframe established by the collection there are missing rows… We will leave this for the moment and come back to it later.</p>
+</section>
+<section id="comparisons" class="level1">
+<h1>Comparisons</h1>
+<p>With the tables as aligned as they are going to get we can now directly compare them.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#combine the list of datasets into one</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>collection_clean_filtered_data <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows, collection_clean_filtered_data)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>missing_collect_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(collection_clean_filtered_data, gt_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(`short name`, project, `station name`, `station
+class`, latitude, longitude, `sample date`, `acoustic depth`, `chl ug/l`, `no2
+um`, `no3 um`, `pn um`, `pp um`, `tss mg/l`, `secchi m`, `location name`)`</code></pre>
+</div>
+</div>
+<p>This tells us there are 47 rows in the collection that don’t exist in the GT dataset.</p>
+<p>Our first assessment of these problems rows is that errors seem related to the time being missing in the date col (registering as 00:00:00), but there are still a few rows that do have times that have popped up. The errors for each of these have been identified as follows:</p>
+<ul>
+<li>40 rows are missing time values, the remaining 7 rows have the following errors:</li>
+<li>BUR4 2023-03-07 12:00:00, the GT table has no lat val</li>
+<li>RM10 2023-01-26 13:00:00, the lat and long are .01 off</li>
+<li>RM7 2023-01-26 12:10:00, long is .9 off - a big difference, only once though which likely indicates a typo</li>
+<li>RM10 2023-01-12 12:44:00, the long is .01 off</li>
+<li>RM10 2022-07-18 10:22:00, the long is .03 off</li>
+<li>TUL 2023-01-11 10:55:00, the long is .12 off</li>
+<li>BUR4 2023-01-04 11:05:00, the lat and long are .01 off</li>
+</ul>
+<p>Overall, it looks like every issue of a row from a spreadsheet not found in the gt table is related to metadata.</p>
+<p>However we still need to compare in the other direction:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use an anti join to find rows in x that dont exist in y: anti_join(x,y)</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>missing_gt_rows <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_clean_filtered_data, collection_clean_filtered_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(`short name`, `location name`, `station name`,
+project, `station class`, `sample date`, latitude, longitude, `acoustic depth`,
+`pp um`, `pn um`, `no2 um`, `no3 um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
+</div>
+</div>
+<p>This tells us there are 789 rows in the GT dataset that don’t exist in the collection dataset. At this point the issue identified with times is relevant again.</p>
+<p>The first thing we want to check, is if any of the missing GT rows are in the timeframe set out by the collection.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> missing_gt_rows <span class="sc">|&gt;</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="fu">min</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>) <span class="sc">&amp;</span> </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">`</span><span class="at">sample date</span><span class="st">`</span> <span class="sc">&lt;</span> <span class="fu">max</span>(collection_clean_filtered_data<span class="sc">$</span><span class="st">`</span><span class="at">sample date</span><span class="st">`</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Of which, 442 rows are.</p>
+<p>The second thing we want to do is eliminate the rows we already identified earlier, as we know the cause of those errors.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pseudo_matches <span class="ot">&lt;-</span> missing_collect_rows <span class="sc">|&gt;</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(missing_within) <span class="sc">|&gt;</span> <span class="co">#combine the two datasets</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, latitude, longitude))) <span class="sc">|&gt;</span> <span class="co">#group by everything but date, lat, and long (these drove the differences and if they are removed we will be able to find matches for the rows)</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">double =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span> <span class="co">#count rows that have doubled up</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(double <span class="sc">==</span> <span class="dv">2</span>) <span class="co"># keep rows that double (i.e have a match)</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">#use this pseudo match table, to remove the relevant rows</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>missing_within <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(missing_within, pseudo_matches)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(`short name`, `location name`, `station name`,
+project, `station class`, `sample date`, latitude, longitude, `acoustic depth`,
+`pp um`, `pn um`, `no2 um`, `no3 um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
+</div>
+</div>
+<p>Something else we can try is to completely remove metadata information and see if the unique combination of observation values have matches.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>gt_no_meta <span class="ot">&lt;-</span> missing_within <span class="sc">|&gt;</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>col_no_meta <span class="ot">&lt;-</span> collection_clean_filtered_data <span class="sc">|&gt;</span> </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"acoustic depth"</span>, <span class="st">"pp um"</span>, <span class="st">"pn um"</span>, <span class="st">"no2 um"</span>, <span class="st">"no3 um"</span>, <span class="st">"tss mg/l"</span>, <span class="st">"chl ug/l"</span>, <span class="st">"secchi m"</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>missing_no_meta <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(gt_no_meta, col_no_meta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(`acoustic depth`, `pp um`, `pn um`, `no2 um`, `no3
+um`, `tss mg/l`, `chl ug/l`, `secchi m`)`</code></pre>
+</div>
+</div>
+<p>However this does not eliminate any additional rows, which further reinforces the idea that these missing rows are true positives.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(collection_clean_filtered_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">sample date</span><span class="st">`</span>, <span class="at">y =</span> <span class="st">`</span><span class="at">pp um</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="exploring_dataframes_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
